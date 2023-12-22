@@ -21,6 +21,7 @@
 CRGB leds[NUM_LEDS];
 
 enum GameMode {
+  CHOICE,
   PONG,
   REFLEXE,
   PUSH
@@ -88,6 +89,9 @@ void on() {
 
 void loop() {
   switch (gameMode) {
+    case CHOICE: 
+      choiceLoop();
+      break;
     case PONG: 
       pongLoop();
       break;
@@ -97,9 +101,35 @@ void loop() {
     case PUSH: 
       pushLoop();
       break;
-
   }
 }
+
+// ---------------------- CHOICE-----------------------------
+
+void choiceLoop() {
+
+  // Rafraîchissement de l'affichage
+  FastLED.clear();
+  for (int i = NUM_LEDS; i < NUM_LEDS; i++) {
+    if (i == (int)ball.x) {
+      leds[i] = ball.color;
+    } else if (i >= NUM_LEDS / 4 && i < NUM_LEDS / 4 + RACKET_LENGTH) {
+      leds[i] = player1.color;
+    } else if (i >= NUM_LEDS / 4 * 3 && i < NUM_LEDS / 4 * 3 + RACKET_LENGTH) {
+      leds[i] = player2.color;
+    }
+  }
+  
+  if (ball.x < NUM_LEDS / 4 || ball.x > NUM_LEDS / 4 * 3) {
+    ball.dx *= -1;
+  }
+
+  ball.x += ball.dx * ball.vx;
+  FastLED.show();
+}
+
+// ---------------------- PONG GAME-----------------------------
+
 
 void pongLoop() {
   if (!gameSetup) {
@@ -162,8 +192,10 @@ void pongLoop() {
     player2.press = false;
   }
 
+  FastLED.show();
+
   // Vérification des collisions
-  if (ball.x < 0 || ball.x >= NUM_LEDS) {
+  if (ball.x < -1 || ball.x >= NUM_LEDS) {
     if (ball.x >= NUM_LEDS) {
       player1Win();
     } else {
@@ -173,8 +205,6 @@ void pongLoop() {
 
   // Déplacement de la balle
   ball.x += ball.dx * ball.vx;
-
-  FastLED.show();
 }
 
 float ballSpeed(float distance) {
